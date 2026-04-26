@@ -22,9 +22,9 @@ public class MyBenchmark
                                                                     """);
     
     [Benchmark]
-    public decimal[] TestPerformance()
+    public float[] TestPerformance()
     {
-        var pool = ArrayPool<decimal>.Shared;
+        var pool = ArrayPool<float>.Shared;
         var r = pool.Rent(14);
         var array = EmbeddingService.Embedding(_dto, r);
         pool.Return(r, true);

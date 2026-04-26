@@ -5,36 +5,36 @@ namespace WebApi.Services;
 
 public class EmbeddingService
 {
-    private const decimal Minimum = 0.0m;
-    private const decimal Maximum = 1.0m;
+    private const float Minimum = 0.0f;
+    private const float Maximum = 1.0f;
 
-    public static decimal Truncate(decimal value) => value switch
+    public static float Truncate(float value) => value switch
     {
         < Minimum => Minimum,
         > Maximum => Maximum,
         _ => value
     };
 
-    public static decimal[] Embedding(TransactionRequestDto dto, decimal[]? array = null)
+    public static float[] Embedding(TransactionRequestDto dto, float[]? array = null)
     {
         var amount = Truncate(dto.Transaction.Amount / Constants.MaxAmount);
         var installments = Truncate(dto.Transaction.Installments / Constants.MaxInstallments);
         var amountVsAvg = Truncate(dto.Transaction.Amount / dto.Customer.AvgAmount / Constants.AmountVsAvgRatio);
-        var hourOfDay = dto.Transaction.RequestedAt.Hour / 23m;
-        var dayOfWeek = dto.Transaction.RequestedAt.DayOfWeekMonToSun / 6m;
+        var hourOfDay = dto.Transaction.RequestedAt.Hour / 23f;
+        var dayOfWeek = dto.Transaction.RequestedAt.DayOfWeekMonToSun / 6f;
         var minutesSinceLastTx = dto.LastTransaction is null
             ? -1
             : Truncate(
-                (decimal)DateTime.UtcNow.Subtract((DateTime)dto.LastTransaction?.Timestamp!).TotalMinutes / Constants.MaxMinutes);
+                (float)DateTime.UtcNow.Subtract((DateTime)dto.LastTransaction?.Timestamp!).TotalMinutes / Constants.MaxMinutes);
         var kmFromLastTx = dto.LastTransaction is null
             ? -1
-            : Truncate((decimal)dto.LastTransaction?.KmFromCurrent! / Constants.MaxKm);
+            : Truncate((float)dto.LastTransaction?.KmFromCurrent! / Constants.MaxKm);
         var kmFromHome = Truncate(dto.Terminal.KmFromHome / Constants.MaxKm);
         var txCount24H = Truncate(dto.Customer.TxCount24H / Constants.MaxTxCount24H);
-        var isOnline = dto.Terminal.IsOnline ? 1m : 0m;
-        var cardPresent = dto.Terminal.CardPresent ? 1m : 0m;
+        var isOnline = dto.Terminal.IsOnline ? 1f : 0f;
+        var cardPresent = dto.Terminal.CardPresent ? 1f : 0f;
         var unknownMerchant = dto.Customer.KnownMerchants.Contains(dto.Merchant.Id) == false ? 1 : 0;
-        var mccRisk = Constants.MccRisk.GetValueOrDefault(dto.Merchant.Mcc, 0.5m);
+        var mccRisk = Constants.MccRisk.GetValueOrDefault(dto.Merchant.Mcc, 0.5f);
         var merchantAvgAmount = Truncate(dto.Merchant.AvgAmount / Constants.MaxMerchantAvgAmount);
 
         if (array != null)

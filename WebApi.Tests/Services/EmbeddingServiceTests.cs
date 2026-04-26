@@ -14,7 +14,7 @@ public class EmbeddingServiceTests
     [InlineData(-1, 0)]
     [InlineData(0, 0)]
     [InlineData(.1, .1)]
-    public void WhenValueIsOutOfRange_ShouldRoundToTheNearAllowed(decimal input, decimal expected)
+    public void WhenValueIsOutOfRange_ShouldRoundToTheNearAllowed(float input, float expected)
     {
         // Act
         var value = EmbeddingService.Truncate(input);
@@ -39,25 +39,25 @@ public class EmbeddingServiceTests
             """);
         
         // Act
-        var pool = ArrayPool<decimal>.Shared;
+        var pool = ArrayPool<float>.Shared;
         var array = pool.Rent(14);
         var result = EmbeddingService.Embedding(dto, array);
         
         // Assert
-        Assert.Equal(0.9506m, result[0], 4);
-        Assert.Equal(0.8333m, result[1], 4);
-        Assert.Equal(1.0m, result[2], 4);
-        Assert.Equal(0.2174m, result[3], 4);
-        Assert.Equal(0.8333m, result[4], 4);
-        Assert.Equal(-1m, result[5], 4);
-        Assert.Equal(-1m, result[6], 4);
-        Assert.Equal(0.9523m, result[7], 4);
-        Assert.Equal(1.0m, result[8], 4);
-        Assert.Equal(0m, result[9], 4);
-        Assert.Equal(1m, result[10], 4);
-        Assert.Equal(1m, result[11], 4);
-        Assert.Equal(0.75m, result[12], 4);
-        Assert.Equal(0.0055m, result[13], 4);
+        Assert.Equal(0.9506f, result[0], 4);
+        Assert.Equal(0.8333f, result[1], 4);
+        Assert.Equal(1.0f, result[2], 4);
+        Assert.Equal(0.2174f, result[3], 4);
+        Assert.Equal(0.8333f, result[4], 4);
+        Assert.Equal(-1f, result[5], 4);
+        Assert.Equal(-1f, result[6], 4);
+        Assert.Equal(0.9523f, result[7], 4);
+        Assert.Equal(1.0f, result[8], 4);
+        Assert.Equal(0f, result[9], 4);
+        Assert.Equal(1f, result[10], 4);
+        Assert.Equal(1f, result[11], 4);
+        Assert.Equal(0.75f, result[12], 4);
+        Assert.Equal(0.0055f, result[13], 4);
         
         pool.Return(array);
         

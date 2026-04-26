@@ -32,7 +32,7 @@ public record struct Terminal
     public bool CardPresent { get; init; }
     
     [JsonPropertyName("km_from_home")]
-    public decimal KmFromHome { get; init; }
+    public float KmFromHome { get; init; }
 }
 
 public record struct Merchant
@@ -44,13 +44,13 @@ public record struct Merchant
     public string Mcc { get; init; }
     
     [JsonPropertyName("avg_amount")]
-    public decimal AvgAmount { get; init; }
+    public float AvgAmount { get; init; }
 }
 
 public record struct Transaction
 {
     [JsonPropertyName("amount")]
-    public decimal Amount { get; init; }
+    public float Amount { get; init; }
     [JsonPropertyName("installments")]
     public int Installments { get; init; }
     [JsonPropertyName("requested_at")]
@@ -60,7 +60,7 @@ public record struct Transaction
 public record struct Customer
 {
     [JsonPropertyName("avg_amount")]
-    public decimal AvgAmount { get; init; }
+    public float AvgAmount { get; init; }
     
     [JsonPropertyName("tx_count_24h")]
     public int TxCount24H { get; init; }
@@ -75,5 +75,5 @@ public record struct LastTransaction
     public DateTime Timestamp { get; set; }
     
     [JsonPropertyName("km_from_current")]
-    public decimal KmFromCurrent { get; set; }
+    public float KmFromCurrent { get; set; }
 }

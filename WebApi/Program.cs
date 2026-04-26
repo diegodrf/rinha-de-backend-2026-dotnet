@@ -1,41 +1,53 @@
+using Microsoft.EntityFrameworkCore;
+using Pgvector;
+using Pgvector.EntityFrameworkCore;
+using WebApi.Dtos;
+using WebApi.Extensions;
+using WebApi.Persistence;
+using WebApi.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddDbContext<AppDbContext>(op =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("rinha-db");
+    ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+
+    op.UseNpgsql(connectionString, x => x.UseVector());
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    app.MapOpenApi();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+    await db.SeedAsync();
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+app.MapGet("/ready", () => "Alive!");
+app.MapPost("/fraud-score", async Task<TransactionResponseDto> (
+    TransactionRequestDto dto,
+    AppDbContext dbContext,
+    CancellationToken cancellationToken
+    ) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var vector = new Vector(EmbeddingService.Embedding(dto));
 
-app.MapGet("/weatherforecast", () =>
+    var targets = await dbContext.AntifraudResults
+        .AsNoTracking()
+        .OrderBy(x => x.Embedding.CosineDistance(vector))
+        .Take(5)
+        .ToListAsync(cancellationToken);
+
+    var frauds = targets.Count(x => x.Label == "fraud");
+    var fraudScore = (frauds / 5.0f);
+
+    return new TransactionResponseDto
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast");
+        Approved = fraudScore < 0.6f,
+        FraudScore = fraudScore
+    };
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
