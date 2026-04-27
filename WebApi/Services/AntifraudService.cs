@@ -36,7 +36,6 @@ public class AntifraudService : IAntifraudService
     {
         try
         {
-            const int target = 100;
             var count = 0;
             var stopwatch = new Stopwatch();
 
@@ -47,13 +46,13 @@ public class AntifraudService : IAntifraudService
                     cancellationToken);
                 stopwatch.Stop();
 
-                if (stopwatch.ElapsedMilliseconds < target)
+                if (stopwatch.ElapsedMilliseconds < Constants.DatabaseTargetResponseTimeInMilliseconds)
                 {
                     count++;
                 }
 
                 stopwatch.Reset();
-                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
+                await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
             }
 
             return true;

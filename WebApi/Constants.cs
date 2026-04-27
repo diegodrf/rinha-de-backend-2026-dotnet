@@ -4,6 +4,8 @@ namespace WebApi;
 
 public static class Constants
 {
+    public const int DatabaseTargetResponseTimeInMilliseconds = 300;
+    
     public const float MaxAmount = 10000;
     public const float MaxInstallments = 12;
     public const float AmountVsAvgRatio = 10;

@@ -80,13 +80,15 @@ public class AntifraudServiceTests
     public async Task ShouldReturnFalseWhenTheDatabaseHasLongDelayAndApplicationThrowsTimeout()
     {
         // Arrange
+        var waitTime = Constants.DatabaseTargetResponseTimeInMilliseconds + 100;
+        
         var ctx = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 
         var repositoryFake = Substitute.For<IAntifraudRepository>();
         repositoryFake.GetNearTransactionsAsync(Arg.Any<ReadOnlyMemory<float>>(), Arg.Any<CancellationToken>())
             .Returns(async _ =>
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(200), ctx.Token);
+                await Task.Delay(TimeSpan.FromMilliseconds(waitTime), ctx.Token);
                 return
                 [
                     new AntifraudResult
