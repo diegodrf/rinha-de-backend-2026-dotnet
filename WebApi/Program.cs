@@ -28,20 +28,23 @@ builder.Services.ConfigureHttpJsonOptions(op =>
 
 var app = builder.Build();
 
+using var scope = app.Services.CreateScope();
+await using var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+await db.Database.OpenConnectionAsync();
+await scope.ServiceProvider.GetRequiredService<IAntifraudRepository>()
+    .GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(), CancellationToken.None);
+
 app.MapGet("/ready", async Task<IResult> (
-    IAntifraudRepository repository,
+    IAntifraudService service,
     CancellationToken cancellationToken) =>
 {
-    var populated = await repository.IsPopulatedAsync(cancellationToken);
-    if (!populated) TypedResults.StatusCode(StatusCodes.Status503ServiceUnavailable);
-
-    for (var i = 0; i < 3; i++)
-    {
-        _ = await repository.GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(), cancellationToken);    
-    }
-
+    var success = await service.WarmUpAsync(cancellationToken);
+    
+    if (!success) TypedResults.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    
     return TypedResults.Ok();
-});
+})
+.WithRequestTimeout(TimeSpan.FromSeconds(5));
 
 app.MapPost("/fraud-score", async Task<TransactionResponseDto> (
     TransactionRequestDto dto,
