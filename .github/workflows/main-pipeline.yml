@@ -68,6 +68,7 @@ jobs:
           cp main-repo/dump.sql.gz submission-folder/
           cp main-repo/nginx.conf submission-folder/
           cp main-repo/compose.yaml submission-folder/
+          cp main-repo/info.json submission-folder/
           
           # Entrar na pasta e iniciar um novo repo órfão
           cd submission-folder
