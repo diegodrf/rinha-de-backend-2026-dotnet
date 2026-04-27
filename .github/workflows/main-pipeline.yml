@@ -1,0 +1,61 @@
+name: CI/CD Pipeline Rinha
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # 1. Job de Testes: Impede o fluxo em caso de falha
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run Tests
+        run: dotnet test --no-restore --verbosity normal
+
+  # 2. Job de Submissão: Executa apenas se os testes passarem
+  deploy-submission:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          path: main-repo
+
+      - name: Prepare submission branch
+        run: |
+          # Configurar Git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Criar uma pasta temporária para a submissão
+          mkdir submission-folder
+          
+          # Copiar apenas os arquivos específicos da branch main para a pasta temporária
+          cp main-repo/dump.sql.gz submission-folder/
+          cp main-repo/nginx.conf submission-folder/
+          cp main-repo/compose.yaml submission-folder/
+          
+          # Entrar na pasta e iniciar um novo repo órfão
+          cd submission-folder
+          git init
+          git checkout -b submission
+          git add .
+          git commit -m "Update submission files - $(date +'%Y-%m-%d %H:%M:%S')"
+          
+          # Adicionar o remoto e forçar o push para a branch submission do repo original
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git push origin submission --force

@@ -1,9 +1,6 @@
 ﻿services:
   webapi:
-    image: webapi
-    build:
-      context: .
-      dockerfile: WebApi/Dockerfile
+    image: ghcr.io/diegodrf/rinha-de-backend-2026-dotnet:latest
     environment:
       ConnectionStrings__rinha-db: "Host=postgres-server;Port=5432;Username=postgres;Password=9yZCv2.F}wnE~0{sxj*!Jx;Database=rinha-db"
     expose:
@@ -12,8 +9,8 @@
       replicas: 2
       resources:
         limits:
-          cpus: "0.25"
-          memory: "100M"
+          cpus: "0.10"
+          memory: "65M"
     depends_on:
       postgres-server:
         condition: service_healthy
@@ -35,8 +32,8 @@
     deploy:
       resources:
         limits:
-          cpus: "0.20"
-          memory: "50M"
+          cpus: "0.10"
+          memory: "20M"
   
   postgres-server:
     image: "docker.io/pgvector/pgvector:pg17-trixie"
@@ -47,7 +44,7 @@
     ports:
       - "5432:5432"
     volumes:
-      - ./Deploy/dump_27-04-2026_00_10_50.sql.gz:/docker-entrypoint-initdb.d/init.sql.gz
+      - .dump.sql.gz:/docker-entrypoint-initdb.d/init.sql.gz
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d rinha-db" ]
       interval: 5s
@@ -58,8 +55,8 @@
     deploy:
       resources:
         limits:
-          cpus: "0.30"
-          memory: "150M"
+          cpus: "0.70"
+          memory: "200M"
 
 networks:
   rinha-network:
