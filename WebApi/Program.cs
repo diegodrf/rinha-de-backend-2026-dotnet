@@ -25,13 +25,6 @@ builder.Services.ConfigureHttpJsonOptions(op =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
-    await db.SeedAsync();
-}
-
 app.MapGet("/ready", async Task<IResult> (
     IAntifraudRepository repository,
     CancellationToken cancellationToken) =>
@@ -39,7 +32,7 @@ app.MapGet("/ready", async Task<IResult> (
     var populated = await repository.IsPopulatedAsync(cancellationToken);
     if (!populated) TypedResults.StatusCode(StatusCodes.Status503ServiceUnavailable);
 
-    for (var i = 0; i < 15; i++)
+    for (var i = 0; i < 3; i++)
     {
         _ = await repository.GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(), cancellationToken);    
     }

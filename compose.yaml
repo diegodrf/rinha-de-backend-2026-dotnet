@@ -10,6 +10,10 @@
       - "8080"
     deploy:
       replicas: 2
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "100M"
     depends_on:
       postgres-server:
         condition: service_healthy
@@ -28,6 +32,11 @@
     depends_on:
       webapi:
         condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: "0.20"
+          memory: "50M"
   
   postgres-server:
     image: "docker.io/pgvector/pgvector:pg17-trixie"
@@ -46,6 +55,11 @@
       retries: 10
     networks:
       - rinha-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.30"
+          memory: "150M"
 
 networks:
   rinha-network:
