@@ -22,7 +22,7 @@ jobs:
       - name: Run Tests
         env:
           DOTNET_TEST_MSBUILD_ENABLE_NEW_EXPERIENCE: true
-          run: dotnet test --verbosity normal
+        run: dotnet test --verbosity normal
 
   publish-docker-image:
     needs: test
