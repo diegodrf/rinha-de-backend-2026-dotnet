@@ -21,6 +21,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./WebApi
+          context: .
+          file: ./WebApi/Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}:latest
