@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using Pgvector;
-using Pgvector.EntityFrameworkCore;
-using WebApi.Dtos;
+using System.Text.Json;
+using WebApi.DTOs;
 using WebApi.Extensions;
-using WebApi.Persistence;
+using WebApi.Repositories;
 using WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +12,14 @@ builder.Services.AddDbContext<AppDbContext>(op =>
     ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
     op.UseNpgsql(connectionString, x => x.UseVector());
+});
+
+builder.Services.AddScoped<IAntifraudRepository, AntifraudRepository>();
+builder.Services.AddScoped<IAntifraudService, AntifraudService>();
+
+builder.Services.ConfigureHttpJsonOptions(op =>
+{
+    op.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
 });
 
 var app = builder.Build();
@@ -28,26 +34,8 @@ using (var scope = app.Services.CreateScope())
 app.MapGet("/ready", () => "Alive!");
 app.MapPost("/fraud-score", async Task<TransactionResponseDto> (
     TransactionRequestDto dto,
-    AppDbContext dbContext,
+    IAntifraudService service,
     CancellationToken cancellationToken
-    ) =>
-{
-    var vector = new Vector(EmbeddingService.Embedding(dto));
-
-    var targets = await dbContext.AntifraudResults
-        .AsNoTracking()
-        .OrderBy(x => x.Embedding.CosineDistance(vector))
-        .Take(5)
-        .ToListAsync(cancellationToken);
-
-    var frauds = targets.Count(x => x.Label == "fraud");
-    var fraudScore = (frauds / 5.0f);
-
-    return new TransactionResponseDto
-    {
-        Approved = fraudScore < 0.6f,
-        FraudScore = fraudScore
-    };
-});
+    ) => await service.GetScoreAsync(dto, cancellationToken));
 
 app.Run();

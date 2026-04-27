@@ -1,6 +1,4 @@
 using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using WebApi.Entities;
 
 namespace WebApi.Persistence;
 

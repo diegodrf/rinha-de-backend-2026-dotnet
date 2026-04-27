@@ -1,5 +1,3 @@
-using Pgvector;
-
 namespace WebApi.Entities;
 
 public class AntifraudResult

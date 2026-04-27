@@ -1,28 +1,11 @@
-using System.Buffers;
 using System.Text.Json;
-using WebApi.Dtos;
-using WebApi.Services;
+using WebApi.DTOs;
+using WebApi.Extensions;
 
-namespace WebApi.Tests.Services;
+namespace WebApi.Tests.Extensions;
 
-public class EmbeddingServiceTests
+public class EmbeddingExtensionsTests
 {
-    [Theory]
-    [InlineData(1.21, 1)]
-    [InlineData(1, 1)]
-    [InlineData(.9, .9)]
-    [InlineData(-1, 0)]
-    [InlineData(0, 0)]
-    [InlineData(.1, .1)]
-    public void WhenValueIsOutOfRange_ShouldRoundToTheNearAllowed(float input, float expected)
-    {
-        // Act
-        var value = EmbeddingService.Truncate(input);
-        
-        // Assert
-        Assert.Equal(expected, value);
-    }
-
     [Fact]
     public void ShouldCalculateThePredefinedEmbedding()
     {
@@ -37,12 +20,10 @@ public class EmbeddingServiceTests
             "last_transaction": null
             }
             """);
-        
+
         // Act
-        var pool = ArrayPool<float>.Shared;
-        var array = pool.Rent(14);
-        var result = EmbeddingService.Embedding(dto, array);
-        
+        var result = dto.ToEmbedding();
+
         // Assert
         Assert.Equal(0.9506f, result[0], 4);
         Assert.Equal(0.8333f, result[1], 4);
@@ -58,9 +39,5 @@ public class EmbeddingServiceTests
         Assert.Equal(1f, result[11], 4);
         Assert.Equal(0.75f, result[12], 4);
         Assert.Equal(0.0055f, result[13], 4);
-        
-        pool.Return(array);
-        
     }
 }
-

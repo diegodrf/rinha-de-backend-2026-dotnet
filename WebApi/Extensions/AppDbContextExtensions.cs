@@ -1,9 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore;
-using Pgvector;
-using WebApi.Entities;
-using WebApi.Persistence;
 
 namespace WebApi.Extensions;
 
