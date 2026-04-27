@@ -36,21 +36,21 @@
           memory: "30M"
   
   postgres-server:
-    image: "docker.io/pgvector/pgvector:pg17-trixie"
-    #tmpfs:
-    #  - /var/lib/postgresql/data
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "9yZCv2.F}wnE~0{sxj*!Jx"
+      POSTGRES_DB: "postgres"
     ports:
       - "5432:5432"
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d rinha-db" ]
-      interval: 5s
+      test: ["CMD-SHELL", "psql -U postgres -d rinha-db -c 'SELECT 1 FROM \"AntifraudResults\" LIMIT 1;' || exit 1"]
+      interval: 2s
       timeout: 5s
-      retries: 10
+      retries: 15
+      start_period: 15s
     networks:
       - rinha-network
     deploy:
