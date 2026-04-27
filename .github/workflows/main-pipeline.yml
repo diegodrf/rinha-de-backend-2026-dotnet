@@ -20,7 +20,9 @@ jobs:
         run: dotnet restore
 
       - name: Run Tests
-        run: dotnet run --project WebApi.Tests/WebApi.Tests.csproj --no-build
+        env:
+          DOTNET_TEST_MSBUILD_ENABLE_NEW_EXPERIENCE: true
+          run: dotnet test --verbosity normal
 
   publish-docker-image:
     needs: test
