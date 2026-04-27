@@ -1,0 +1,21 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  webapi:
+    build:
+      context: "/home/diegodrf/RiderProjects/rinha-de-backend-2026-dotnet"
+      dockerfile: "WebApi/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net10.0/WebApi.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "webapi:dev"
+    ports: []
+    volumes:
+    - "/home/diegodrf/RiderProjects/rinha-de-backend-2026-dotnet/WebApi:/app:rw"
+    - "/home/diegodrf/RiderProjects/rinha-de-backend-2026-dotnet:/src:rw"
+    - "/home/diegodrf/.nuget/packages:/home/app/.nuget/packages"
+    working_dir: "/app"

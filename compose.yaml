@@ -6,13 +6,13 @@
       dockerfile: WebApi/Dockerfile
     environment:
       ConnectionStrings__rinha-db: "Host=postgres-server;Port=5432;Username=postgres;Password=9yZCv2.F}wnE~0{sxj*!Jx;Database=rinha-db"
+    expose:
+      - "8080"
     deploy:
       replicas: 2
-    expose:
-      - "5089"
     depends_on:
       postgres-server:
-        condition: "service_started"
+        condition: service_healthy
     networks:
       - rinha-network
   
@@ -24,19 +24,26 @@
       - "9999:80"
     networks:
       - rinha-network
+    restart: always
     depends_on:
       webapi:
         condition: service_started
-    restart: always
-    
   
   postgres-server:
     image: "docker.io/pgvector/pgvector:pg17-trixie"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "9yZCv2.F}wnE~0{sxj*!Jx"
+      POSTGRES_DB: "rinha-db"
     ports:
       - "5432:5432"
+    volumes:
+      - ./Deploy/dump_27-04-2026_00_10_50.sql.gz:/docker-entrypoint-initdb.d/init.sql.gz
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d rinha-db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - rinha-network
 

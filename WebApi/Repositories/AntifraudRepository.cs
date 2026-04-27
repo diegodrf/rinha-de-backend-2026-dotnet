@@ -19,4 +19,10 @@ public class AntifraudRepository : IAntifraudRepository
             .Take(5)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<bool> IsPopulatedAsync(CancellationToken cancellationToken)
+    {
+        var count = await _dbContext.AntifraudResults.CountAsync(cancellationToken);
+        return count >= 100_000;
+    }
 }

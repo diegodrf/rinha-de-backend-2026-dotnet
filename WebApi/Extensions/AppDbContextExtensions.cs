@@ -19,7 +19,7 @@ public static class AppDbContextExtensions
                 cancellationToken: cancellationToken);
             ArgumentNullException.ThrowIfNull(json);
             
-            foreach (var c in json.Chunk(500))
+            foreach (var c in json.Chunk(1000))
             {
                 var entities = c.Select(x => new AntifraudResult
                 {

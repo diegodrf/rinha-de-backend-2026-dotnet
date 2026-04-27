@@ -1,4 +1,5 @@
 using System.Text.Json;
+using WebApi;
 using WebApi.DTOs;
 using WebApi.Extensions;
 using WebApi.Repositories;
@@ -31,7 +32,21 @@ using (var scope = app.Services.CreateScope())
     await db.SeedAsync();
 }
 
-app.MapGet("/ready", () => "Alive!");
+app.MapGet("/ready", async Task<IResult> (
+    IAntifraudRepository repository,
+    CancellationToken cancellationToken) =>
+{
+    var populated = await repository.IsPopulatedAsync(cancellationToken);
+    if (!populated) TypedResults.StatusCode(StatusCodes.Status503ServiceUnavailable);
+
+    for (var i = 0; i < 15; i++)
+    {
+        _ = await repository.GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(), cancellationToken);    
+    }
+
+    return TypedResults.Ok();
+});
+
 app.MapPost("/fraud-score", async Task<TransactionResponseDto> (
     TransactionRequestDto dto,
     IAntifraudService service,
