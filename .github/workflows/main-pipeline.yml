@@ -65,7 +65,7 @@ jobs:
           mkdir submission-folder
           
           # Copiar apenas os arquivos específicos da branch main para a pasta temporária
-          cp main-repo/dump.sql.gz submission-folder/
+          cp main-repo/init.sql submission-folder/
           cp main-repo/nginx.conf submission-folder/
           cp main-repo/compose.yaml submission-folder/
           cp main-repo/info.json submission-folder/
