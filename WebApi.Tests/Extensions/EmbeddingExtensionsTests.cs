@@ -1,5 +1,3 @@
-using System.Text.Json;
-using WebApi.DTOs;
 using WebApi.Extensions;
 
 namespace WebApi.Tests.Extensions;
@@ -10,19 +8,10 @@ public class EmbeddingExtensionsTests
     public void ShouldCalculateThePredefinedEmbedding()
     {
         // Arrange
-        var dto = JsonSerializer.Deserialize<TransactionRequestDto>("""
-            {
-            "id": "tx-3330991687",
-            "transaction":      { "amount": 9505.97, "installments": 10, "requested_at": "2026-03-14T05:15:12Z" },
-            "customer":         { "avg_amount": 81.28, "tx_count_24h": 20, "known_merchants": ["MERC-008", "MERC-007", "MERC-005"] },
-            "merchant":         { "id": "MERC-068", "mcc": "7802", "avg_amount": 54.86 },
-            "terminal":         { "is_online": false, "card_present": true, "km_from_home": 952.27 },
-            "last_transaction": null
-            }
-            """);
+        var dto = Utils.RequestExample;
 
         // Act
-        var result = dto.ToEmbedding();
+        var result = dto.ToEmbedding(new float[14]);
 
         // Assert
         Assert.Equal(0.9506f, result[0], 4);

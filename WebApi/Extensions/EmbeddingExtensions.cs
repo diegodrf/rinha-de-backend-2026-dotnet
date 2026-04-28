@@ -6,7 +6,7 @@ public static class EmbeddingExtensions
 {
     extension(TransactionRequestDto dto)
     {
-        public float[] ToEmbedding()
+        public float[] ToEmbedding(float[] array)
         {
             var amount = Utils.Truncate(dto.Transaction.Amount / Constants.MaxAmount);
             var installments = Utils.Truncate(dto.Transaction.Installments / Constants.MaxInstallments);
@@ -29,24 +29,23 @@ public static class EmbeddingExtensions
             var unknownMerchant = dto.Customer.KnownMerchants.Any(x => x == dto.Merchant.Id) == false ? 1 : 0;
             var mccRisk = Constants.MccRisk.GetValueOrDefault(dto.Merchant.Mcc, 0.5f);
             var merchantAvgAmount = Utils.Truncate(dto.Merchant.AvgAmount / Constants.MaxMerchantAvgAmount);
-
-            return
-            [
-                amount,
-                installments,
-                amountVsAvg,
-                hourOfDay,
-                dayOfWeek,
-                minutesSinceLastTx,
-                kmFromLastTx,
-                kmFromHome,
-                txCount24H,
-                isOnline,
-                cardPresent,
-                unknownMerchant,
-                mccRisk,
-                merchantAvgAmount
-            ];
+            
+            array[0] = amount;
+            array[1] = installments;
+            array[2] = amountVsAvg;
+            array[3] = hourOfDay;
+            array[4] = dayOfWeek;
+            array[5] = minutesSinceLastTx;
+            array[6] = kmFromLastTx;
+            array[7] = kmFromHome;
+            array[8] = txCount24H;
+            array[9] = isOnline;
+            array[10] = cardPresent;
+            array[11] = unknownMerchant;
+            array[12] = mccRisk;
+            array[13] = merchantAvgAmount;            
+            
+            return array;
         }
     }
 }

@@ -37,7 +37,7 @@ public class AntifraudServiceTests
             .Select(i => new AntifraudResult
             {
                 Id = i,
-                Embedding = new Vector(dto.ToEmbedding()),
+                Embedding = new Vector(dto.ToEmbedding(new float[14])),
                 Label = "legit"
             });
 
@@ -63,7 +63,7 @@ public class AntifraudServiceTests
             .Returns([
                 new AntifraudResult
                 {
-                    Id = 0, Embedding = new Vector(Utils.RequestExample.ToEmbedding()), Label = "legit"
+                    Id = 0, Embedding = new Vector(Utils.RequestExample.ToEmbedding(new float[14])), Label = "legit"
                 }
             ]);
 
@@ -94,7 +94,7 @@ public class AntifraudServiceTests
                     new AntifraudResult
                     {
                         Id = 0,
-                        Embedding = new Vector(Utils.RequestExample.ToEmbedding()),
+                        Embedding = new Vector(Utils.RequestExample.ToEmbedding(new float[14])),
                         Label = "legit"
                     }
                 ];

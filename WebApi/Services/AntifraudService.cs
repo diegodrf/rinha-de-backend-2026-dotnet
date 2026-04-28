@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Diagnostics;
 using WebApi.DTOs;
 using WebApi.Extensions;
@@ -20,7 +21,11 @@ public class AntifraudService : IAntifraudService
         TransactionRequestDto dto,
         CancellationToken cancellationToken)
     {
-        var targets = await _antifraudRepository.GetNearTransactionsAsync(dto.ToEmbedding(), cancellationToken);
+        var array = ArrayPool<float>.Shared.Rent(14);
+        
+        var targets = await _antifraudRepository.GetNearTransactionsAsync(dto.ToEmbedding(array), cancellationToken);
+        
+        ArrayPool<float>.Shared.Return(array);
 
         var frauds = targets.Count(x => x.Label == "fraud");
         var fraudScore = (frauds / 5.0f);
@@ -36,11 +41,15 @@ public class AntifraudService : IAntifraudService
     {
         try
         {
+            var array = ArrayPool<float>.Shared.Rent(14);
+            
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            _ = await _antifraudRepository.GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(),
+            _ = await _antifraudRepository.GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(array),
                 cancellationToken);
             stopwatch.Stop();
+            
+            ArrayPool<float>.Shared.Return(array);
 
             _logger.LogInformation("Response time: {ResponseTime}", stopwatch.ElapsedMilliseconds);
             
