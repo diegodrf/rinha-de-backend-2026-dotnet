@@ -36,26 +36,15 @@ public class AntifraudService : IAntifraudService
     {
         try
         {
-            var fastQuery = 0;
             var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            _ = await _antifraudRepository.GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(),
+                cancellationToken);
+            stopwatch.Stop();
 
-            for (var i = 0; i < 5; i++)
-            {
-                stopwatch.Start();
-                _ = await _antifraudRepository.GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(),
-                    cancellationToken);
-                stopwatch.Stop();
-
-                if (stopwatch.ElapsedMilliseconds < Constants.DatabaseTargetResponseTimeInMilliseconds)
-                {
-                    fastQuery++;
-                }
-
-                stopwatch.Reset();
-                await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
-            }
-
-            return fastQuery >= 3;
+            _logger.LogInformation("Response time: {ResponseTime}", stopwatch.ElapsedMilliseconds);
+            
+            return stopwatch.ElapsedMilliseconds < Constants.DatabaseTargetResponseTimeInMilliseconds;
         }
         catch (OperationCanceledException ex)
         {
@@ -67,6 +56,5 @@ public class AntifraudService : IAntifraudService
             _logger.LogError("{Message}", ex.Message);
             throw;
         }
-        
     }
 }

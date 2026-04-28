@@ -1,7 +1,5 @@
 using System.Text.Json;
-using WebApi;
 using WebApi.DTOs;
-using WebApi.Extensions;
 using WebApi.Repositories;
 using WebApi.Services;
 
@@ -17,7 +15,6 @@ builder.Services.AddDbContext<AppDbContext>(op =>
 
 builder.Services.AddScoped<IAntifraudRepository, AntifraudRepository>();
 builder.Services.AddScoped<IAntifraudService, AntifraudService>();
-builder.Services.AddRequestTimeouts();
 
 builder.Services.ConfigureHttpJsonOptions(op =>
 {
@@ -26,25 +23,19 @@ builder.Services.ConfigureHttpJsonOptions(op =>
 
 var app = builder.Build();
 
-app.UseRequestTimeouts();
-
-using var scope = app.Services.CreateScope();
-await using var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-await db.Database.OpenConnectionAsync();
-await scope.ServiceProvider.GetRequiredService<IAntifraudRepository>()
-    .GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(), CancellationToken.None);
-
 app.MapGet("/ready", async Task<IResult> (
         IAntifraudService service,
         CancellationToken cancellationToken) =>
-    {
-        var success = await service.WarmUpAsync(cancellationToken);
+{
+    if (WU.Warmup) return TypedResults.Ok();
+    
+    var success = await service.WarmUpAsync(cancellationToken);
 
-        if (!success) TypedResults.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    if (!success) return TypedResults.StatusCode(StatusCodes.Status503ServiceUnavailable);
 
-        return TypedResults.Ok();
-    })
-    .WithRequestTimeout(TimeSpan.FromSeconds(3));
+    WU.Warmup = true;
+    return TypedResults.Ok();
+    });
 
 app.MapPost("/fraud-score", async Task<TransactionResponseDto> (
     TransactionRequestDto dto,
@@ -53,3 +44,8 @@ app.MapPost("/fraud-score", async Task<TransactionResponseDto> (
     ) => await service.GetScoreAsync(dto, cancellationToken));
 
 app.Run();
+
+public static class WU
+{
+    public static bool Warmup = false;
+}
