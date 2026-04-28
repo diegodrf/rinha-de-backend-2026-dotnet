@@ -36,10 +36,10 @@ public class AntifraudService : IAntifraudService
     {
         try
         {
-            var count = 0;
+            var fastQuery = 0;
             var stopwatch = new Stopwatch();
 
-            while (count < 5)
+            for (var i = 0; i < 5; i++)
             {
                 stopwatch.Start();
                 _ = await _antifraudRepository.GetNearTransactionsAsync(Utils.RequestExample.ToEmbedding(),
@@ -48,14 +48,14 @@ public class AntifraudService : IAntifraudService
 
                 if (stopwatch.ElapsedMilliseconds < Constants.DatabaseTargetResponseTimeInMilliseconds)
                 {
-                    count++;
+                    fastQuery++;
                 }
 
                 stopwatch.Reset();
                 await Task.Delay(TimeSpan.FromMilliseconds(200), cancellationToken);
             }
 
-            return true;
+            return fastQuery >= 3;
         }
         catch (OperationCanceledException ex)
         {

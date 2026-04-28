@@ -2,7 +2,6 @@ using System.Text.Json;
 using WebApi;
 using WebApi.DTOs;
 using WebApi.Extensions;
-using WebApi.Persistence.CompiledModels;
 using WebApi.Repositories;
 using WebApi.Services;
 
@@ -13,8 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(op =>
     var connectionString = builder.Configuration.GetConnectionString("rinha-db");
     ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
-    op.UseNpgsql(connectionString, x => x.UseVector())
-        .UseModel(AppDbContextModel.Instance);
+    op.UseNpgsql(connectionString, x => x.UseVector());
 });
 
 builder.Services.AddScoped<IAntifraudRepository, AntifraudRepository>();
@@ -24,7 +22,6 @@ builder.Services.AddRequestTimeouts();
 builder.Services.ConfigureHttpJsonOptions(op =>
 {
     op.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
-    op.SerializerOptions.TypeInfoResolver = AppJsonContext.Default;
 });
 
 var app = builder.Build();

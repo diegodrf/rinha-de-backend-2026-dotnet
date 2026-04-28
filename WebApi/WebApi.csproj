@@ -5,7 +5,6 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,6 +20,10 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="DTOs\AppJsonContext.cs" />
     </ItemGroup>
 
 </Project>
