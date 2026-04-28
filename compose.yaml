@@ -1,6 +1,6 @@
 ﻿services:
   webapi:
-    image: ghcr.io/diegodrf/rinha-de-backend-2026-dotnet:latest
+    image: ghcr.io/diegodrf/rinha-de-backend-2026-dotnet-webapi:latest
     environment:
       ConnectionStrings__rinha-db: "Host=postgres-server;Port=5432;Username=postgres;Password=9yZCv2.F}wnE~0{sxj*!Jx;Database=rinha-db"
     expose:
@@ -42,9 +42,7 @@
           memory: "30M"
   
   postgres-server:
-    build:
-      context: .
-      dockerfile: Dockerfile.postgres
+    image: ghcr.io/diegodrf/rinha-de-backend-2026-dotnet-postgres:latest
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "9yZCv2.F}wnE~0{sxj*!Jx"

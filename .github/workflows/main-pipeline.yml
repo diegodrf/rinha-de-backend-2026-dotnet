@@ -36,13 +36,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push WebApi
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./WebApi/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/${{ github.repository }}-webapi:latest
+
+      - name: Build and push Postgres
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: .Dockerfile.postgres
+          push: true
+          tags: ghcr.io/${{ github.repository }}-postgres:latest
 
   deploy-submission:
     needs: [test, publish-docker-image]
