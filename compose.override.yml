@@ -1,0 +1,12 @@
+services:
+  webapi:
+    image: !reset
+    build:
+      context: .
+      dockerfile: ./WebApi/Dockerfile
+
+  postgres-server:
+    image: !reset
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres

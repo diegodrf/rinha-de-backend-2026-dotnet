@@ -2,15 +2,15 @@
   webapi:
     image: ghcr.io/diegodrf/rinha-de-backend-2026-dotnet-webapi:latest
     environment:
-      ConnectionStrings__rinha-db: "Host=postgres-server;Port=5432;Username=postgres;Password=9yZCv2.F}wnE~0{sxj*!Jx;Database=rinha-db"
+      ConnectionStrings__rinha-db: "Host=postgres-server;Port=5432;Username=postgres;Password=9yZCv2.F}wnE~0{sxj*!Jx;Database=rinha-db;Pooling=true;Minimum Pool Size=0;Maximum Pool Size=200;"
     expose:
       - "8080"
     deploy:
       replicas: 2
-      resources:
-        limits:
-          cpus: "0.15"
-          memory: "100M"
+    #  resources:
+    #    limits:
+    #      cpus: "0.15"
+    #      memory: "100M"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/ready"]
       interval: 10s
@@ -35,11 +35,11 @@
     depends_on:
       webapi:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: "0.10"
-          memory: "30M"
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: "0.10"
+    #      memory: "30M"
   
   postgres-server:
     image: ghcr.io/diegodrf/rinha-de-backend-2026-dotnet-postgres:latest
@@ -57,11 +57,11 @@
       start_period: 15s
     networks:
       - rinha-network
-    deploy:
-      resources:
-        limits:
-          cpus: "0.60"
-          memory: "120M"
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: "0.60"
+    #      memory: "120M"
 
 networks:
   rinha-network:
