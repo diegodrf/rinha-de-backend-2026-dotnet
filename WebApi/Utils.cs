@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Collections.Concurrent;
 using WebApi.DTOs;
 
 namespace WebApi;
@@ -43,4 +45,20 @@ public static class Utils
         },
         LastTransaction = null
     };
+}
+
+public static class EmbeddingPool
+{
+    private const int FixedLength = 14;
+    private static readonly ConcurrentQueue<float[]> _queue = new();
+    
+    public static float[] Rent()
+    {
+        return _queue.TryDequeue(out var value) ? value : new float[FixedLength];
+    }
+
+    public static void Return(float[] array)
+    {
+        _queue.Enqueue(array);
+    }
 }

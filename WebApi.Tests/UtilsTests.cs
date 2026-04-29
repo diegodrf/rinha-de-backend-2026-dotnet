@@ -17,4 +17,14 @@ public class UtilsTests
         // Assert
         Assert.Equal(expected, value);
     }
+
+    [Fact]
+    public void ShouldCreateAnArrayWith14Lenght()
+    {
+        // Act
+        var sut = EmbeddingPool.Rent();
+        
+        // Assert
+        Assert.Equal(14, sut.Length);
+    }
 }

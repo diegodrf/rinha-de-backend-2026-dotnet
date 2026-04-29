@@ -8,6 +8,7 @@ namespace WebApi.Services;
 
 public class AntifraudService : IAntifraudService
 {
+    private const string Fraud = "fraud";
     private readonly IAntifraudRepository _antifraudRepository;
     private readonly ILogger<AntifraudService> _logger;
 
@@ -21,13 +22,21 @@ public class AntifraudService : IAntifraudService
         TransactionRequestDto dto,
         CancellationToken cancellationToken)
     {
-        var array = ArrayPool<float>.Shared.Rent(14);
-        
+        var array = EmbeddingPool.Rent();
+
         var targets = await _antifraudRepository.GetNearTransactionsAsync(dto.ToEmbedding(array), cancellationToken);
         
-        ArrayPool<float>.Shared.Return(array);
+        EmbeddingPool.Return(array);
 
-        var frauds = targets.Count(x => x.Label == "fraud");
+        var frauds = 0;
+        foreach (var t in targets)
+        {
+            if (t.Label.Equals(Fraud, StringComparison.OrdinalIgnoreCase))
+            {
+                frauds++;
+            }
+        }
+        
         var fraudScore = (frauds / 5.0f);
 
         return new TransactionResponseDto
@@ -41,7 +50,7 @@ public class AntifraudService : IAntifraudService
     {
         try
         {
-            var array = ArrayPool<float>.Shared.Rent(14);
+            var array = EmbeddingPool.Rent();
             
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -49,7 +58,7 @@ public class AntifraudService : IAntifraudService
                 cancellationToken);
             stopwatch.Stop();
             
-            ArrayPool<float>.Shared.Return(array);
+            EmbeddingPool.Return(array);
 
             _logger.LogInformation("Response time: {ResponseTime}", stopwatch.ElapsedMilliseconds);
             
