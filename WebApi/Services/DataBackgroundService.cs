@@ -24,27 +24,22 @@ public class DataBackgroundService : BackgroundService
         var stopWatch = new Stopwatch();
         while (await _channel.Reader.WaitToReadAsync(stoppingToken))
         {
-            if (_channel.Reader.TryRead(out var item))
+            if (!_channel.Reader.TryRead(out var item)) continue;
+            
+            stopWatch.Start();
+                
+            var response = await _antifraudService.GetScoreAsync(item.dto, stoppingToken);
+                
+            stopWatch.Stop();
+                
+            if (stopWatch.ElapsedMilliseconds > 500)
             {
-                stopWatch.Start();
-                
-                var response = await _antifraudService.GetScoreAsync(item.dto, stoppingToken);
-                
-                stopWatch.Stop();
-                
-                if (stopWatch.ElapsedMilliseconds > 500)
-                {
-                    _logger.LogWarning("Spent {time} milliseconds", stopWatch.ElapsedMilliseconds);    
-                }
-                else
-                {
-                    _logger.LogInformation("Spent {time} milliseconds", stopWatch.ElapsedMilliseconds);
-                }
-                
-                stopWatch.Reset();
-
-                item.responseChannel.Writer.TryWrite(response);
+                _logger.LogWarning("Spent {time} milliseconds", stopWatch.ElapsedMilliseconds);    
             }
+                
+            stopWatch.Reset();
+
+            item.responseChannel.Writer.TryWrite(response);
         }
     }
 }
