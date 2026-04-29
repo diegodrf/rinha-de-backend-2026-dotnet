@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Threading.Channels;
 using Microsoft.AspNetCore.Http.Timeouts;
 using WebApi;
 using WebApi.DTOs;
@@ -15,19 +16,23 @@ builder.Services.AddDbContextPool<AppDbContext>(op =>
     op.UseNpgsql(connectionString, x => x.UseVector());
 });
 
+for (var i = 0; i < 100; i++)
+{
+    builder.Services.AddHostedService<DataBackgroundService>();
+}
+
 builder.Services.AddScoped<IAntifraudRepository, AntifraudRepository>();
 builder.Services.AddScoped<IAntifraudService, AntifraudService>();
 builder.Services.AddRequestTimeouts(c =>
 {
+    var defaultValue = new TransactionResponseDto() { Approved = false, FraudScore = 1f };
     c.AddPolicy("Policy", new RequestTimeoutPolicy
     {
-        Timeout = TimeSpan.FromMilliseconds(Constants.DatabaseTargetResponseTimeInMilliseconds),
+        Timeout = TimeSpan.FromMilliseconds(500),
         TimeoutStatusCode = StatusCodes.Status200OK,
-        WriteTimeoutResponse = async (context) =>
+        WriteTimeoutResponse = async context =>
         {
-            context.Response.ContentType = "application/json";
-            var json = JsonSerializer.Serialize(new TransactionResponseDto() { Approved = false, FraudScore = 1f });
-            await context.Response.WriteAsync(json);
+            await context.Response.WriteAsJsonAsync(defaultValue);
         }
     });
 });
@@ -35,6 +40,20 @@ builder.Services.AddRequestTimeouts(c =>
 builder.Services.ConfigureHttpJsonOptions(op =>
 {
     op.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+});
+
+builder.Services.AddSingleton(_ =>
+{
+    BoundedChannelOptions options = new(1000)
+    {
+        SingleReader = false,
+        SingleWriter = false,
+        AllowSynchronousContinuations = false,
+        FullMode = BoundedChannelFullMode.Wait
+    };
+    
+    var channel = Channel.CreateBounded<TransactionChannelTemplate>(options);
+    return channel;
 });
 
 var app = builder.Build();
@@ -54,12 +73,34 @@ app.MapGet("/ready", async Task<IResult> (
     return TypedResults.Ok();
     });
 
-app.MapPost("/fraud-score", async Task<TransactionResponseDto> (
+app.MapPost("/fraud-score", async Task<IResult> (
     TransactionRequestDto dto,
-    IAntifraudService service,
+    Channel<TransactionChannelTemplate> channel,
     CancellationToken cancellationToken
-    ) => await service.GetScoreAsync(dto, cancellationToken))
-    .WithRequestTimeout("Policy");
+) =>
+{
+    var callback = ChannelPool.Rent();
+
+    try
+    {
+        while (!channel.Writer.TryWrite(new(dto, callback)))
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(2), cancellationToken);
+        }
+
+        while (await callback.Reader.WaitToReadAsync(cancellationToken))
+        {
+            if (callback.Reader.TryRead(out var item)) return TypedResults.Ok(item);
+        }
+
+        return TypedResults.StatusCode(StatusCodes.Status500InternalServerError);
+    }
+    finally
+    {
+        ChannelPool.Return(callback);
+    }
+});
+    //.WithRequestTimeout("Policy");
 
 app.Run();
 
@@ -67,3 +108,7 @@ public static class WU
 {
     public static bool Warmup = false;
 }
+
+public record TransactionChannelTemplate(
+    TransactionRequestDto dto,
+    Channel<TransactionResponseDto> responseChannel);

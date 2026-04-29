@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Threading.Channels;
 using WebApi.DTOs;
 
 namespace WebApi;
@@ -60,5 +61,22 @@ public static class EmbeddingPool
     public static void Return(float[] array)
     {
         _queue.Enqueue(array);
+    }
+}
+
+public static class ChannelPool
+{
+    private static readonly ConcurrentQueue<Channel<TransactionResponseDto>> _queue = new();
+    
+    public static Channel<TransactionResponseDto> Rent()
+    {
+        if (_queue.TryDequeue(out var value)) return value;
+
+        return Channel.CreateBounded<TransactionResponseDto>(1);
+    }
+
+    public static void Return(Channel<TransactionResponseDto> channel)
+    {
+        _queue.Enqueue(channel);
     }
 }
