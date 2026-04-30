@@ -1,0 +1,68 @@
+﻿services:
+  webapi:
+    image: ghcr.io/diegodrf/rinha-de-backend-2026-dotnet-webapi:latest
+    environment:
+      ConnectionStrings__rinha-db: "Host=postgres-server;Port=5432;Username=postgres;Password=9yZCv2.F}wnE~0{sxj*!Jx;Database=rinha-db;Pooling=true;Minimum Pool Size=0;Maximum Pool Size=200;"
+    expose:
+      - "8080"
+    deploy:
+      replicas: 2
+    #  resources:
+    #    limits:
+    #      cpus: "0.15"
+    #      memory: "100M"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    depends_on:
+      postgres-server:
+        condition: service_healthy
+    networks:
+      - rinha-network
+  
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "9999:9999"
+    networks:
+      - rinha-network
+    restart: always
+    depends_on:
+      webapi:
+        condition: service_healthy
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: "0.10"
+    #      memory: "30M"
+  
+  postgres-server:
+    image: ghcr.io/diegodrf/rinha-de-backend-2026-dotnet-postgres:latest
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "9yZCv2.F}wnE~0{sxj*!Jx"
+      POSTGRES_DB: "postgres"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U postgres -d rinha-db"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+    networks:
+      - rinha-network
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: "0.60"
+    #      memory: "120M"
+
+networks:
+  rinha-network:
+    driver: "bridge"

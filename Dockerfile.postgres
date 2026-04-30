@@ -1,0 +1,4 @@
+﻿FROM docker.io/pgvector/pgvector:pg17-trixie
+
+# Copia o script de inicialização para a imagem
+COPY init.sql /docker-entrypoint-initdb.d/01-init.sql
